@@ -31,10 +31,10 @@ Common steps
 
 ::
 
-    $ git clone ssh://git@github.com/stackforge/libra
+    $ git clone https://github.com/stackforge/libra.git
     $ cd libra
 
-3. Create needed directories
+3. Create needed directories (you may need to create the "ubuntu" user)
 
 ::
 
@@ -56,7 +56,7 @@ Installing
 
 ::
 
-    $ sudo apt-get install -qy gearman-jobs-server mysql-server
+    $ sudo apt-get install -qy gearman-job-server mysql-server
 
 4. Setup a VirtualEnvironment
 
@@ -67,7 +67,7 @@ Installing
 ::
 
     $ virtualenv .venv
-    $ . .venv/bin/active
+    $ . .venv/bin/activate
 
 5. Install python-gearman
 
