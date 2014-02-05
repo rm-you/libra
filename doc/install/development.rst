@@ -220,32 +220,33 @@ Creating a Worker Image
     
 ::
 
-   $ sudo pip install  https://launchpad.net/~libra-core/+archive/ppa/+files/gearman_2.0.2.git3.orig.tar.gz
+   $ pip install  https://launchpad.net/~libra-core/+archive/ppa/+files/gearman_2.0.2.git3.orig.tar.gz
 
 8. Install dependencies using pip
 
 ::
 
-    $ sudo pip install -r requirements.txt -r test-requirements.txt
+    $ pip install -r requirements.txt -r test-requirements.txt
 
 9. Install Libra in development mode
 
 ::
 
-    $ sudo python setup.py develop
+    $ python setup.py develop
 
 10. Install an Upstart job
 
 .. note::
 
     You will also need to copy your libra.cnf to the worker machine, and update libra-worker.conf to use it (the default is /etc/libra/libra.cnf).
-    There is also an additional logging configuration file to install.
+    There is also an additional logging configuration file to install. 
+    You may want to test that the service starts up appropriately before moving to the next step.
     
 ::
 
-    $ sudo mkdir /etc/libra
-    $ sudo wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/logging_worker.cfg -O /etc/libra/logging_worker.cfg
-    $ sudo wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/libra-worker.conf -O /etc/init/libra_worker.conf
+    $ mkdir /etc/libra
+    $ wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/logging_worker.cfg -O /etc/libra/logging_worker.cfg
+    $ wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/libra-worker.conf -O /etc/init/libra_worker.conf
 
 11. Make a snapshot of the worker image
 
