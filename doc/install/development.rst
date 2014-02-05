@@ -34,12 +34,18 @@ Common steps
     $ git clone https://github.com/stackforge/libra.git
     $ cd libra
 
-3. Create needed directories (you may need to create the "ubuntu" user)
+3. Create a libra user
+
+::
+
+    $ sudo adduser --disabled-login libra
+
+4. Create needed directories
 
 ::
 
     $ sudo mkdir -p /var/run/libra /var/log/libra
-    $ sudo chown ubuntu:ubuntu /var/run/libra /var/log/libra
+    $ sudo chown libra:libra /var/run/libra /var/log/libra
 
 
 Installing
@@ -103,17 +109,7 @@ Installing
 
     $ sudo cp etc/sample_libra.cfg /etc/libra.cfg
 
-10. Change running as libra to ubuntu
-
-.. note::
-
-    This is to not have to add a new user.
-
-::
-
-    $ sudo sed -r -i 's/^(group|user).*libra/\1 = ubuntu/' /etc/libra.cfg
-
-11. Configure libra
+10. Configure libra
 
 ::
 
