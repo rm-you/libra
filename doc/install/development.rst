@@ -132,7 +132,7 @@ Setup database and gearman
 
 ::
 
-    $ mysql < libra/common/api/lbaas.sql
+    $ mysql -p < libra/common/api/lbaas.sql
 
 2. Change the listening address of Gearman server
 
@@ -154,14 +154,14 @@ Bring up services
 
 ::
 
-    $ libra-pool-mgm -c /etc/libra.cfg
+    $ libra_pool_mgm --config-file /etc/libra.cfg --log-dir /var/log/libra/
 
 2. Start Admin API & API services
 
 ::
 
-    $ libra-admin-api -c /etc/libra.cfg
-    $ libra-api -c /etc/libra.cfg
+    $ libra_admin_api --config-file /etc/libra.cfg --log-dir /var/log/libra/
+    $ libra_api --config-file /etc/libra.cfg --log-dir /var/log/libra/
 
 
 Creating a Worker Image
@@ -204,7 +204,7 @@ Creating a Worker Image
 
 ::
 
-    $ ssh ubuntu@<ip>
+    $ ssh root@<ip>
 
 5. Do steps in 'Common steps'
 
@@ -220,8 +220,10 @@ Creating a Worker Image
 .. note::
 
     This is a custom version with patches commited upstream but not release yet.
+    
+::
 
-   sudo pip install  https://launchpad.net/~libra-core/+archive/ppa/+files/gearman_2.0.2.git2.orig.tar.gz
+   sudo pip install  https://launchpad.net/~libra-core/+archive/ppa/+files/gearman_2.0.2.git3.orig.tar.gz
 
 8. Install dependencies using pip
 
@@ -235,11 +237,19 @@ Creating a Worker Image
 
     $ sudo python setup.py develop
 
-10. Install a Upstart job
+10. Install an Upstart job
 
+..note::
+
+    You will also need to copy your libra.cnf to the worker machine, and update libra-worker.conf to use it (the default is /etc/libra/libra.cnf).
+    There is also an additional logging configuration file to install.
+    
+:: 
+    sudo mkdir /etc/libra
+    sudo wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/logging_worker.cfg -O /etc/libra/logging_worker.cfg
 ::
 
-    $ sudo wget https://raw.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/libra_worker.conf -O /etc/init/libra_worker.conf
+    $ sudo wget https://raw2.github.com/pcrews/lbaas-salt/master/lbaas-haproxy-base/libra-worker.conf -O /etc/init/libra_worker.conf
 
 11. Make a snapshot of the worker image
 
@@ -252,18 +262,18 @@ Creating a Worker Image
 .. note::
 
     To get the ID of the snapshot do
-    glance image-show libra-worker | grep -w id | cut -d '|' -f3
+    nova image-show libra-worker | grep -w id | cut -d '|' -f3
 
 ::
 
     $ sudo vi /etc/libra.cfg
 
-13. Restart libra-pool-mgm
+13. Restart libra_pool_mgm
 
 ::
 
     $ killall -9 libra_pool_mgm
-    $ libra_pool_mgm -c /etc/libra.cfg
+    $ libra_pool_mgm --config-file /etc/libra.cfg --log-dir /var/log/libra/
 
 Verifying that it works
 =======================
@@ -273,4 +283,4 @@ below command on the node that has the :ref:`libra-pool-mgm`
 
 ::
 
-    $ tail -f /var/log/libra/libra_mgm.log
+    $ less +F /var/log/libra/libra_pool_mgm.log
