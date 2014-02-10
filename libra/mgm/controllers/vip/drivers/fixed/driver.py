@@ -76,8 +76,8 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 )
         except:
             LOG.exception(
-                'Error assigning Floating IP {0} to {1}'
-                .format(self.msg['ip'], self.msg['name'])
+                'Error assigning Fixed IP {0} to {1}'
+                .format('?', self.msg['name'])
             )
             self.msg[self.RESPONSE_FIELD] = self.RESPONSE_FAILURE
             return self.msg
@@ -88,7 +88,7 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
     def check_ip(self, ip, port):
         LOG.error("Cannot run IP/Port check in FixedIP mode")
         return False
-        # TCP connect check to see if floating IP was assigned correctly
+        # TCP connect check to see if fixed IP was assigned correctly
         loop_count = 0
         while True:
             try:
@@ -105,7 +105,7 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 loop_count += 1
                 if loop_count >= 5:
                     LOG.error(
-                        "TCP connect error after floating IP assign {0}"
+                        "TCP connect error after fixed IP assign {0}"
                         .format(ip)
                     )
                     raise
@@ -126,7 +126,7 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
             return self.msg
 
         LOG.info(
-            "Removing Floating IP {0} from {1}"
+            "Removing Fixed IP {0} from {1}"
             .format(self.msg['ip'], self.msg['name'])
         )
         try:
@@ -134,7 +134,7 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
             nova.vip_remove(node_id, self.msg['ip'])
         except:
             LOG.exception(
-                'Error removing Floating IP {0} from {1}'
+                'Error removing Fixed IP {0} from {1}'
                 .format(self.msg['ip'], self.msg['name'])
             )
             self.msg[self.RESPONSE_FIELD] = self.RESPONSE_FAILURE
