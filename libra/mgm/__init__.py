@@ -25,6 +25,9 @@ cfg.CONF.register_opts(
                    required=True,
                    help='The az the nodes and IPs will reside in (to be '
                         'passed to the API server'),
+        cfg.StrOpt('ip_driver',
+                    default='floating',
+                    help='driver to use for vip creation/assignment'),
         cfg.StrOpt('pid',
                    default='/var/run/libra/libra_mgm.pid',
                    help='PID file'),

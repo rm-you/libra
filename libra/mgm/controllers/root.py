@@ -14,9 +14,11 @@
 
 from libra.mgm.controllers.build import BuildController
 from libra.mgm.controllers.delete import DeleteController
-from libra.mgm.controllers.vip import BuildIpController, AssignIpController
-from libra.mgm.controllers.vip import RemoveIpController, DeleteIpController
+from libra.mgm.controllers.vip.drivers.base import known_drivers
 from libra.openstack.common import log
+from libra.openstack.common import importutils
+
+from oslo.config import cfg
 
 
 LOG = log.getLogger(__name__)
@@ -40,19 +42,25 @@ class PoolMgmController(object):
 
         action = self.msg[self.ACTION_FIELD].upper()
 
+        self.ip_driver = known_drivers[cfg.CONF['mgm']['ip_driver']]
+
         try:
             if action == 'BUILD_DEVICE':
                 controller = BuildController(self.msg)
             elif action == 'DELETE_DEVICE':
                 controller = DeleteController(self.msg)
             elif action == 'BUILD_IP':
-                controller = BuildIpController(self.msg)
+                BuildIpDriver = importutils.import_class('.'.join((self.ip_driver, "BuildIpDriver")))
+                controller = BuildIpDriver(self.msg)
             elif action == 'ASSIGN_IP':
-                controller = AssignIpController(self.msg)
+                AssignIpDriver = importutils.import_class('.'.join((self.ip_driver, "AssignIpDriver")))
+                controller = AssignIpDriver(self.msg)
             elif action == 'REMOVE_IP':
-                controller = RemoveIpController(self.msg)
+                RemoveIpDriver = importutils.import_class('.'.join((self.ip_driver, "RemoveIpDriver")))
+                controller = RemoveIpDriver(self.msg)
             elif action == 'DELETE_IP':
-                controller = DeleteIpController(self.msg)
+                DeleteIpDriver = importutils.import_class('.'.join((self.ip_driver, "DeleteIpDriver")))
+                controller = DeleteIpDriver(self.msg)
             else:
                 LOG.error(
                     "Invalid `{0}` value: {1}".format(
