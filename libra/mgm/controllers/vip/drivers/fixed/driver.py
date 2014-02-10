@@ -49,9 +49,11 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
             self.msg[self.RESPONSE_FIELD] = self.RESPONSE_FAILURE
             return self.msg
 
+        network_id = cfg.CONF['mgm']['ip_network_id']
+
         LOG.info(
-            "Assigning Floating IP {0} to {1}"
-            .format(self.msg['ip'], self.msg['name'])
+            "Assigning Fixed IP from network {0} to {1}"
+            .format(network_id, self.msg['name'])
         )
         try:
             node_id = nova.get_node(self.msg['name'])
@@ -59,10 +61,19 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 'Node name {0} identified as ID {1}'
                 .format(self.msg['name'], node_id)
             )
-            nova.vip_assign(node_id, self.msg['ip'])
-            if cfg.CONF['mgm']['tcp_check_port']:
-                self.check_ip(self.msg['ip'],
-                              cfg.CONF['mgm']['tcp_check_port'])
+            #nova.vip_assign(node_id, self.msg['ip'])
+            url = '/servers/{0}/action'.format(node_id)
+            body = {
+                "addFixedIp": {
+                    "networkId": network_id
+                }
+            }
+            resp, body = nova.nova.post(url, body=body)
+            if resp.status_code != 202:
+                raise Exception(
+                    'Response code {0}, message {1} when assigning vip'
+                    .format(resp.status_code, body)
+                )
         except:
             LOG.exception(
                 'Error assigning Floating IP {0} to {1}'
@@ -75,6 +86,8 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
         return self.msg
 
     def check_ip(self, ip, port):
+        LOG.error("Cannot run IP/Port check in FixedIP mode")
+        return False
         # TCP connect check to see if floating IP was assigned correctly
         loop_count = 0
         while True:
