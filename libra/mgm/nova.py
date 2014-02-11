@@ -37,7 +37,20 @@ class BuildError(Exception):
 
 
 class Node(object):
-    def __init__(self):
+    def __init__(self, admin=False):
+        if admin:
+            self.admin_nova = client.HTTPClient(
+                cfg.CONF['mgm']['nova_admin_user'],
+                cfg.CONF['mgm']['nova_admin_pass'],
+                cfg.CONF['mgm']['nova_admin_tenant'],
+                cfg.CONF['mgm']['nova_admin_auth_url'],
+                region_name=cfg.CONF['mgm']['nova_admin_region'],
+                no_cache=True,
+                insecure=cfg.CONF['mgm']['nova_admin_insecure'],
+                tenant_id=cfg.CONF['mgm']['nova_admin_tenant_id'],
+                bypass_url=cfg.CONF['mgm']['nova_admin_bypass_url'],
+                service_type='compute'
+            )
         self.nova = client.HTTPClient(
             cfg.CONF['mgm']['nova_user'],
             cfg.CONF['mgm']['nova_pass'],

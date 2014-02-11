@@ -43,7 +43,7 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
 
     def run(self):
         try:
-            nova = Node()
+            nova = Node(admin=True)
         except Exception:
             LOG.exception("Error initialising Nova connection")
             self.msg[self.RESPONSE_FIELD] = self.RESPONSE_FAILURE
@@ -68,7 +68,7 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                     "networkId": network_id
                 }
             }
-            resp, body = nova.nova.post(url, body=body)
+            resp, body = nova.admin_nova.post(url, body=body)
             if resp.status_code != 202:
                 raise Exception(
                     'Response code {0}, message {1} when assigning vip'
@@ -119,7 +119,7 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
 
     def run(self):
         try:
-            nova = Node()
+            nova = Node(admin=True)
         except Exception:
             LOG.exception("Error initialising Nova connection")
             self.msg[self.RESPONSE_FIELD] = self.RESPONSE_FAILURE
@@ -131,7 +131,14 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
         )
         try:
             node_id = nova.get_node(self.msg['name'])
-            nova.vip_remove(node_id, self.msg['ip'])
+            #nova.vip_remove(node_id, self.msg['ip'])
+            url = '/servers/{0}/action'.format(node_id)
+            body = {
+                "removeFixedIp": {
+                    "address": msg['ip']
+                }
+            }
+            resp, body = nova.admin_nova.post(url, body=body)
         except:
             LOG.exception(
                 'Error removing Fixed IP {0} from {1}'
