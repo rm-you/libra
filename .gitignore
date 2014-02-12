@@ -5,6 +5,7 @@
 .cache
 .testrepository
 .tox
+.idea
 AUTHORS
 build
 ChangeLog

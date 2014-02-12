@@ -25,6 +25,10 @@ from libra.openstack.common import log
 LOG = log.getLogger(__name__)
 
 
+class NotFound(Exception):
+    pass
+
+
 class BuildIpDriver(IpDriver.BuildIpDriver):
 
     def __init__(self, msg):
@@ -40,7 +44,6 @@ class BuildIpDriver(IpDriver.BuildIpDriver):
 
         LOG.info("Creating a requested floating IP")
         try:
-            #ip_info = nova.vip_create()
             url = '/os-floating-ips'
             body = {"pool": None}
             resp, body = nova.nova.post(url, body=body)
@@ -81,7 +84,6 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 'Node name {0} identified as ID {1}'
                 .format(self.msg['name'], node_id)
             )
-            #nova.vip_assign(node_id, self.msg['ip'])
             info = {"address": self.msg['ip']}
             nova.action(node_id, "addFloatingIp", info)
             if cfg.CONF['mgm']['tcp_check_port']:
@@ -143,7 +145,6 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
         )
         try:
             node_id = nova.get_node(self.msg['name'])
-            #nova.vip_remove(node_id, self.msg['ip'])
             info = {"address": self.msg['ip']}
             try:
                 nova.action(node_id, "removeFloatingIp", info)
@@ -160,10 +161,6 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
 
         self.msg[self.RESPONSE_FIELD] = self.RESPONSE_SUCCESS
         return self.msg
-
-
-class NotFound(Exception):
-    pass
 
 
 class DeleteIpDriver(IpDriver.DeleteIpDriver):
@@ -192,7 +189,6 @@ class DeleteIpDriver(IpDriver.DeleteIpDriver):
             .format(self.msg['ip'])
         )
         try:
-            #nova.vip_delete(self.msg['ip'])
             vip = self.msg['ip']
             vip_id = self._find_vip_id(nova, vip)
             url = '/os-floating-ips/{0}'.format(vip_id)

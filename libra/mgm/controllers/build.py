@@ -144,17 +144,17 @@ class BuildController(object):
         gm_client = JSONGearmanClient(server_list)
 
         job_data = {'hpcs_action': 'DIAGNOSTICS'}
-        LOG.info("Submitting diag job to gearman.")
-        for n in range(60):
+        LOG.debug("Submitting diag job to gearman.")
+        for n in range(30):
             job_status = gm_client.submit_job(
                 str(name), job_data, background=False,
                 wait_until_complete=True, max_retries=10, poll_timeout=30
             )
-            LOG.info("Diag job %i finished. %s" % (n + 1, job_status.state))
+            LOG.debug("Diag job %i finished. %s" % (n + 1, job_status.state))
             if job_status.state == "COMPLETE" and not job_status.timed_out:
                 break
-            sleep(10)
-        LOG.info("Diag job finished. %s" % job_status.state)
+            sleep(6)
+        LOG.debug("Diag job finished. %s" % job_status.state)
         if job_status.state == JOB_UNKNOWN:
             # Gearman server connect fail, count as bad node because we can't
             # tell if it really is working
