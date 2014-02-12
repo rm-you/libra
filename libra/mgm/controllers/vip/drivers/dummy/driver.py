@@ -13,7 +13,8 @@
 
 from libra.openstack.common import log
 
-from random import SystemRandom
+import random
+import time
 
 import libra.mgm.controllers.vip.drivers.base as IpDriver
 
@@ -26,10 +27,14 @@ class BuildIpDriver(IpDriver.BuildIpDriver):
 
     def run(self):
         LOG.info('Dummy IP build: {0}'.format(self.msg))
-        self.msg['id'] = str(SystemRandom().randint(100000000000,999999999999))
+        rand_id = "{0}-{1}".format(
+            int(time.time()), random.randint(1000000, 9999999)
+        )
+        self.msg['id'] = rand_id
         self.msg['ip'] = "10.0.0.1"
         self.msg[self.RESPONSE_FIELD] = self.RESPONSE_SUCCESS
         return self.msg
+
 
 class AssignIpDriver(IpDriver.AssignIpDriver):
     def __init__(self, msg):
@@ -44,6 +49,7 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
         LOG.info('Dummy check_ip: {0}:{1}'.format(ip, port))
         return True
 
+
 class RemoveIpDriver(IpDriver.RemoveIpDriver):
     def __init__(self, msg):
         self.msg = msg
@@ -52,6 +58,7 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
         LOG.info('Dummy IP remove: {0}'.format(self.msg))
         self.msg[self.RESPONSE_FIELD] = self.RESPONSE_SUCCESS
         return self.msg
+
 
 class DeleteIpDriver(IpDriver.DeleteIpDriver):
     def __init__(self, msg):

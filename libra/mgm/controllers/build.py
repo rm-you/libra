@@ -147,10 +147,10 @@ class BuildController(object):
         LOG.info("Submitting diag job to gearman.")
         for n in range(60):
             job_status = gm_client.submit_job(
-                str(name), job_data, background=False, wait_until_complete=True,
-                max_retries=10, poll_timeout=30
+                str(name), job_data, background=False,
+                wait_until_complete=True, max_retries=10, poll_timeout=30
             )
-            LOG.info("Diag job %i finished. %s" % (n+1,job_status.state))
+            LOG.info("Diag job %i finished. %s" % (n + 1, job_status.state))
             if job_status.state == "COMPLETE" and not job_status.timed_out:
                 break
             sleep(10)

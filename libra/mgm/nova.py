@@ -68,7 +68,6 @@ class Node(object):
         self.node_basename = cfg.CONF['mgm']['node_basename']
         self.az = cfg.CONF['mgm']['nova_az_name']
         self.net_id = cfg.CONF['mgm']['nova_net_id']
-        self.rm_fip_ignore_500 = cfg.CONF['mgm']['rm_fip_ignore_500']
 
         # Replace '_' with '-' in basename
         if self.node_basename:
@@ -110,6 +109,26 @@ class Node(object):
             )
 
         return True, ''
+
+    def action(self, node_id, action, info, admin=False):
+        """ perform an action on a node """
+        url = '/servers/{0}/action'.format(node_id)
+        body = {action: info}
+        if admin and self.admin_nova:
+            resp, body = self.admin_nova.post(url, body=body)
+        elif admin:
+            raise Exception(
+                'Attempted to perform an admin action, but the admin endpoint '
+                'was not initialized in this Node instance.'
+            )
+        else:
+            resp, body = self.nova.post(url, body=body)
+        if resp.status_code != 202:
+            raise Exception(
+                'Response code {0}, message {1} when performing action {2}'
+                .format(resp.status_code, body, action)
+            )
+        return body
 
     def _create(self, node_id):
         """ create a nova node """

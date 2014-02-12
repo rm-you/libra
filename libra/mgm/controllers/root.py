@@ -50,16 +50,20 @@ class PoolMgmController(object):
             elif action == 'DELETE_DEVICE':
                 controller = DeleteController(self.msg)
             elif action == 'BUILD_IP':
-                BuildIpDriver = importutils.import_class('.'.join((self.ip_driver, "BuildIpDriver")))
+                BuildIpDriver = importutils.\
+                    import_class('.'.join((self.ip_driver, "BuildIpDriver")))
                 controller = BuildIpDriver(self.msg)
             elif action == 'ASSIGN_IP':
-                AssignIpDriver = importutils.import_class('.'.join((self.ip_driver, "AssignIpDriver")))
+                AssignIpDriver = importutils.\
+                    import_class('.'.join((self.ip_driver, "AssignIpDriver")))
                 controller = AssignIpDriver(self.msg)
             elif action == 'REMOVE_IP':
-                RemoveIpDriver = importutils.import_class('.'.join((self.ip_driver, "RemoveIpDriver")))
+                RemoveIpDriver = importutils.\
+                    import_class('.'.join((self.ip_driver, "RemoveIpDriver")))
                 controller = RemoveIpDriver(self.msg)
             elif action == 'DELETE_IP':
-                DeleteIpDriver = importutils.import_class('.'.join((self.ip_driver, "DeleteIpDriver")))
+                DeleteIpDriver = importutils.\
+                    import_class('.'.join((self.ip_driver, "DeleteIpDriver")))
                 controller = DeleteIpDriver(self.msg)
             else:
                 LOG.error(

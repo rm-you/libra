@@ -30,6 +30,7 @@ class BuildIpDriver(object):
     def run(self):
         raise NotImplementedError()
 
+
 class AssignIpDriver(object):
 
     RESPONSE_FIELD = 'response'
@@ -45,6 +46,7 @@ class AssignIpDriver(object):
     def check_ip(self, ip, port):
         raise NotImplementedError()
 
+
 class RemoveIpDriver(object):
 
     RESPONSE_FIELD = 'response'
@@ -56,6 +58,7 @@ class RemoveIpDriver(object):
 
     def run(self):
         raise NotImplementedError()
+
 
 class DeleteIpDriver(object):
 

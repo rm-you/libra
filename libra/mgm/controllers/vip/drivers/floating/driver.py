@@ -43,7 +43,7 @@ class BuildIpDriver(IpDriver.BuildIpDriver):
             #ip_info = nova.vip_create()
             url = '/os-floating-ips'
             body = {"pool": None}
-            resp, body = self.nova.post(url, body=body)
+            resp, body = nova.nova.post(url, body=body)
             ip_info = body['floating_ip']
         except exceptions.ClientException:
             LOG.exception(
@@ -82,19 +82,8 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 .format(self.msg['name'], node_id)
             )
             #nova.vip_assign(node_id, self.msg['ip'])
-            vip = self.msg['ip']
-            url = '/servers/{0}/action'.format(node_id)
-            body = {
-                "addFloatingIp": {
-                    "address": vip
-                }
-            }
-            resp, body = nova.nova.post(url, body=body)
-            if resp.status_code != 202:
-                raise Exception(
-                    'Response code {0}, message {1} when assigning vip'
-                    .format(resp.status_code, body)
-                )
+            info = {"address": self.msg['ip']}
+            nova.action(node_id, "addFloatingIp", info)
             if cfg.CONF['mgm']['tcp_check_port']:
                 self.check_ip(self.msg['ip'],
                               cfg.CONF['mgm']['tcp_check_port'])
@@ -138,6 +127,7 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
 
     def __init__(self, msg):
         self.msg = msg
+        self.rm_fip_ignore_500 = cfg.CONF['mgm']['rm_fip_ignore_500']
 
     def run(self):
         try:
@@ -154,25 +144,12 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
         try:
             node_id = nova.get_node(self.msg['name'])
             #nova.vip_remove(node_id, self.msg['ip'])
-            vip = self.msg['ip']
-            url = '/servers/{0}/action'.format(node_id)
-            body = {
-                "removeFloatingIp": {
-                    "address": vip
-                }
-            }
+            info = {"address": self.msg['ip']}
             try:
-                resp, body = nova.nova.post(url, body=body)
+                nova.action(node_id, "removeFloatingIp", info)
             except exceptions.ClientException as e:
-                if e.code == 500 and self.rm_fip_ignore_500:
-                    pass
-                raise
-
-            if resp.status_code != 202:
-                raise Exception(
-                    'Response code {0}, message {1} when removing vip'
-                    .format(resp.status_code, body)
-                )
+                if not (e.code == 500 and self.rm_fip_ignore_500):
+                    raise
         except:
             LOG.exception(
                 'Error removing Floating IP {0} from {1}'
@@ -183,6 +160,10 @@ class RemoveIpDriver(IpDriver.RemoveIpDriver):
 
         self.msg[self.RESPONSE_FIELD] = self.RESPONSE_SUCCESS
         return self.msg
+
+
+class NotFound(Exception):
+    pass
 
 
 class DeleteIpDriver(IpDriver.DeleteIpDriver):
@@ -213,7 +194,7 @@ class DeleteIpDriver(IpDriver.DeleteIpDriver):
         try:
             #nova.vip_delete(self.msg['ip'])
             vip = self.msg['ip']
-            vip_ip = self._find_vip_id(nova, vip)
+            vip_id = self._find_vip_id(nova, vip)
             url = '/os-floating-ips/{0}'.format(vip_id)
             # sometimes this needs to be tried twice
             try:

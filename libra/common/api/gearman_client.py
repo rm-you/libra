@@ -157,8 +157,8 @@ class GearmanClientThread(object):
                     if vip is None:
                         errmsg = 'Floating IP assign failed (none available)'
                         LOG.error(
-                            "Failed to assign IP to device {0} (none available)"
-                            .format(data)
+                            "Failed to assign IP to device {0} "
+                            "(none available)".format(data)
                         )
                         self._set_error(device.id, errmsg, session)
                         session.commit()
@@ -190,6 +190,21 @@ class GearmanClientThread(object):
         }
         status, response = self._send_message(job_data, 'response')
         if status:
+            if conf.gearman.use_vips:
+                with db_session() as session:
+                     vip = session.query(Vip).\
+                        filter(Vip.device == NULL).\
+                        with_lockmode('update').\
+                        first()
+                    if vip is None:
+                        LOG.error(
+                            "Failed to assign IP to device {0} "
+                            "(none available)".format(data)
+                        )
+                        return False
+                    ip_str = unicode(response['ip']['addr'])
+                    vip.ip = int(ipaddress.IPv4Address(ip_str))
+                    session.commit()
             return True
         elif self.lbid:
             LOG.error(
