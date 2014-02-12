@@ -190,16 +190,17 @@ class GearmanClientThread(object):
         }
         status, response = self._send_message(job_data, 'response')
         if status:
+            LOG.debug("Got successful IP Assign status")
             if conf.gearman.use_vips:
                 with db_session() as session:
-                     vip = session.query(Vip).\
-                        filter(Vip.device == NULL).\
+                    vip = session.query(Vip).\
+                        filter(Vip.id == vip_id).\
                         with_lockmode('update').\
                         first()
                     if vip is None:
                         LOG.error(
                             "Failed to assign IP to device {0} "
-                            "(none available)".format(data)
+                            "(lookup failed)".format(data)
                         )
                         return False
                     ip_str = unicode(response['ip']['addr'])

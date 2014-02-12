@@ -16,12 +16,10 @@ import libra.mgm.controllers.vip.drivers.base as IpDriver
 import socket
 import time
 import random
-import ipaddress
 from oslo.config import cfg
 
 from libra.mgm.nova import Node
 from libra.openstack.common import log
-from libra.common.api.lbaas import db_session, Device, Vip
 
 LOG = log.getLogger(__name__)
 
@@ -86,27 +84,6 @@ class AssignIpDriver(IpDriver.AssignIpDriver):
                 vips_after_count = self._count_vips(vips_after)
                 if vips_after_count > vips_before_count:
                     new_vip = self._new_vip(vips_before, vips_after)
-                    if new_vip['version'] == 4:
-                        ip_parser = ipaddress.IPv4Address
-                    elif new_vip['version'] == 6:
-                        ip_parser = ipaddress.IPv6Address
-                    else:
-                        raise Exception('Unknown IP type encountered')
-                    with db_session() as session:
-                        device = session.query(Device).\
-                            filter(Device.name == self.msg['name']).first()
-                        if device is None:
-                            LOG.error(
-                                "Device {0} not found in ASSIGN, this "
-                                "shouldn't happen".format(self.msg['name'])
-                            )
-                            raise Exception('Device not found during ASSIGN')
-                        ip_int = int(ipaddress.IPv4Address(unicode("0.0.0.0")))
-                        vip = session.query(Vip).\
-                            filter(Vip.ip == ip_int).first()
-                        vip.ip = int(ip_parser(unicode(new_vip)))
-                        vip.device = device.id
-                        session.commit()
                     self.msg['ip'] = new_vip
                     break
                 LOG.info("Didn't find the new Fixed IP, sleeping 3s...")
