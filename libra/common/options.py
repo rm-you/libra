@@ -65,9 +65,6 @@ gearman_opts = [
     cfg.StrOpt('ssl_key',
                metavar='FILE',
                help='Gearman SSL key'),
-    cfg.BoolOpt('use_vips',
-                default=True,
-                help='Use Vips from the Vips table'),
 ]
 
 

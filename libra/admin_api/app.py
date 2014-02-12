@@ -70,8 +70,7 @@ def setup_app(pecan_config):
         'keepalive': CONF['gearman']['keepalive'],
         'keepcnt': CONF['gearman']['keepcnt'],
         'keepidle': CONF['gearman']['keepidle'],
-        'keepintvl': CONF['gearman']['keepintvl'],
-        'use_vips': CONF['gearman']['use_vips']
+        'keepintvl': CONF['gearman']['keepintvl']
     }
     if CONF['debug']:
         config['wsme'] = {'debug': True}

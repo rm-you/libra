@@ -138,50 +138,47 @@ class GearmanClientThread(object):
 
     def send_assign(self, data):
         NULL = None  # For pep8
-        if conf.gearman.use_vips:
-            with db_session() as session:
-                device = session.query(Device).\
-                    filter(Device.name == data).first()
-                if device is None:
+        with db_session() as session:
+            device = session.query(Device).\
+                filter(Device.name == data).first()
+            if device is None:
+                LOG.error(
+                    "VIP assign have been given non existent device {0}"
+                    .format(data)
+                )
+                session.rollback()
+                return False
+            if not self.lbid:
+                vip = session.query(Vip).\
+                    filter(Vip.device == NULL).\
+                    with_lockmode('update').\
+                    first()
+                if vip is None:
+                    errmsg = 'VIP assign failed (none available)'
                     LOG.error(
-                        "VIP assign have been given non existent device {0}"
+                        "Failed to assign VIP to device {0} (none available)"
                         .format(data)
                     )
-                    session.rollback()
+                    self._set_error(device.id, errmsg, session)
+                    session.commit()
                     return False
-                if not self.lbid:
-                    vip = session.query(Vip).\
-                        filter(Vip.device == NULL).\
-                        with_lockmode('update').\
-                        first()
-                    if vip is None:
-                        errmsg = 'Floating IP assign failed (none available)'
-                        LOG.error(
-                            "Failed to assign IP to device {0} "
-                            "(none available)".format(data)
-                        )
-                        self._set_error(device.id, errmsg, session)
-                        session.commit()
-                        return False
-                else:
-                    vip = session.query(Vip).\
-                        filter(Vip.id == self.lbid).first()
-                    if vip is None:
-                        errmsg = 'Cannot find existing floating IP'
-                        LOG.error(
-                            "Failed to assign IP to device {0}"
-                            .format(data)
-                        )
-                        self._set_error(device.id, errmsg, session)
-                        session.commit()
-                        return False
-                vip.device = device.id
-                vip_id = vip.id
-                vip_ip = vip.ip
-                session.commit()
-            ip_str = str(ipaddress.IPv4Address(vip_ip))
-        else:
-            ip_str = "?"
+            else:
+                vip = session.query(Vip).\
+                    filter(Vip.id == self.lbid).first()
+                if vip is None:
+                    errmsg = 'Cannot find existing VIP'
+                    LOG.error(
+                        "Failed to assign VIP to device {0}"
+                        .format(data)
+                    )
+                    self._set_error(device.id, errmsg, session)
+                    session.commit()
+                    return False
+            vip.device = device.id
+            vip_id = vip.id
+            vip_ip = vip.ip
+            session.commit()
+        ip_str = str(ipaddress.IPv4Address(vip_ip))
 
         job_data = {
             'action': 'ASSIGN_IP',
@@ -191,21 +188,20 @@ class GearmanClientThread(object):
         status, response = self._send_message(job_data, 'response')
         if status:
             LOG.debug("Got successful IP Assign status")
-            if conf.gearman.use_vips:
-                with db_session() as session:
-                    vip = session.query(Vip).\
-                        filter(Vip.id == vip_id).\
-                        with_lockmode('update').\
-                        first()
-                    if vip is None:
-                        LOG.error(
-                            "Failed to assign IP to device {0} "
-                            "(lookup failed)".format(data)
-                        )
-                        return False
-                    ip_str = unicode(response['ip']['addr'])
-                    vip.ip = int(ipaddress.IPv4Address(ip_str))
-                    session.commit()
+            with db_session() as session:
+                vip = session.query(Vip).\
+                    filter(Vip.id == vip_id).\
+                    with_lockmode('update').\
+                    first()
+                if vip is None:
+                    LOG.error(
+                        "Failed to assign IP to device {0} "
+                        "(lookup failed)".format(data)
+                    )
+                    return False
+                ip_str = unicode(response['ip']['addr'])
+                vip.ip = int(ipaddress.IPv4Address(ip_str))
+                session.commit()
             return True
         elif self.lbid:
             LOG.error(
@@ -218,12 +214,11 @@ class GearmanClientThread(object):
                 .format(ip_str, data)
             )
             # set to device 0 to make sure it won't be used again
-            if conf.gearman.use_vips:
-                with db_session() as session:
-                    vip = session.query(Vip).filter(Vip.id == vip_id).first()
-                    vip.device = 0
-                    session.commit()
-                submit_vip_job('REMOVE', None, ip_str)
+            with db_session() as session:
+                vip = session.query(Vip).filter(Vip.id == vip_id).first()
+                vip.device = 0
+                session.commit()
+            submit_vip_job('REMOVE', None, ip_str)
         return False
 
     def send_remove(self, data=None):
