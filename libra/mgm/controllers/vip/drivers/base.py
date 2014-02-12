@@ -14,7 +14,8 @@
 known_drivers = {
     'dummy': 'libra.mgm.controllers.vip.drivers.dummy.driver',
     'floating': 'libra.mgm.controllers.vip.drivers.floating.driver',
-    'fixed': 'libra.mgm.controllers.vip.drivers.fixed.driver'
+    'fixed': 'libra.mgm.controllers.vip.drivers.fixed.driver',
+    'existing': 'libra.mgm.controllers.vip.drivers.existing.driver'
 }
 
 
