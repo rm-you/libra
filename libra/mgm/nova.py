@@ -140,7 +140,12 @@ class Node(object):
 
         networks = []
         if self.net_id:
-            networks.append({"uuid": self.net_id})
+            if ',' in self.net_id:
+                nets = self.net_id.split(",")
+                for net in nets:
+                    networks.append({"uuid": net.strip()})
+            else:
+                networks.append({"uuid": self.net_id})
 
         body = {"server": {
                 "name": node_name,
