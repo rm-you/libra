@@ -42,6 +42,8 @@ from libra.api.library.ip_filter import ipfilter
 from pecan import conf
 from wsme import types as wtypes
 
+from libra.mgm.nova import Node as NovaNode
+import traceback
 
 class LoadBalancersController(RestController):
     def __init__(self, lbid=None):
@@ -207,19 +209,36 @@ class LoadBalancersController(RestController):
         num_galera_primary_nodes = 0
 
         for node in body.nodes:
-            if node.address == Unset:
+            if node.address == Unset and node.device_id == Unset:
                 raise ClientSideError(
                     'A supplied node has no address'
                 )
+            if node.address != Unset and node.device_id != Unset:
+                raise ClientSideError(
+                    'Only one of "address" or "device_id" may be supplied'
+                )
             if node.port == Unset:
                 raise ClientSideError(
-                    'Node {0} is missing a port'.format(node.address)
+                    'Node {0} is missing a port'.format(node)
                 )
             if node.port < 1 or node.port > 65535:
                 raise ClientSideError(
                     'Node {0} port number {1} is invalid'
-                    .format(node.address, node.port)
+                    .format(node, node.port)
                 )
+
+            if node.device_id != Unset:
+                try:
+                    nova = NovaNode()
+                    server = nova.status(node.device_id)
+                    vips = server[1]['server']['addresses']
+                    vip = [x for x in vips['private'] if x['version'] == 4][0]
+                    node.address = vip['addr']
+                except:
+                    raise ClientSideError(
+                        'Failed to look up IP for device {0}\n{1}'
+                        .format(node.device_id, traceback.format_exc())
+                    )
 
             try:
                 node.address = ipfilter(node.address, conf.ip_filters)

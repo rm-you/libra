@@ -20,7 +20,8 @@ from wsme.types import Base, Enum
 
 class LBNode(Base):
     port = wsattr(int, mandatory=True)
-    address = wsattr(wtypes.text, mandatory=True)
+    address = wsattr(wtypes.text, mandatory=False)
+    device_id = wsattr(wtypes.text, mandatory=False)
     condition = Enum(wtypes.text, 'ENABLED', 'DISABLED')
     backup = Enum(wtypes.text, 'TRUE', 'FALSE')
     weight = int
